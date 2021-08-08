@@ -3,12 +3,14 @@
     {
       "id": 1,
       "title": "json-server",
-      "author": "typicode"
+      "authorName": "typicode",
+      "authorUrl": "https://github.com/typicode"
     },
     {
       "id": 2,
       "title": "http-server",
-      "author": "indexzero"
+      "authorName": "indexzero",
+      "authorUrl": "https://github.com/indexzero"
     }
   ],
   "comments": [

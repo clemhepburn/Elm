@@ -1,6 +1,6 @@
 module DecodingJson exposing (main)
 
-import Json.Decode.Pipeline exposing (required)
+import Json.Decode.Pipeline exposing (required, optional)
 import Browser
 import Html exposing (..)
 import Html.Attributes exposing (href)
@@ -11,10 +11,12 @@ import RemoteData exposing (RemoteData, WebData)
         
 
 type alias Post =
-    { id : Int
+    { id : String
     , title : String
-    , authorName: String
-    , authorUrl: String
+    , authorName : String
+    , authorUrl : String
+    , name : String
+    , post : String
     }
 
 type alias Model =
@@ -66,20 +68,20 @@ viewTableHeader =
         [ th []
             [ text "Id" ]
         , th []
-            [ text "Title" ]
+            [ text "Post" ]
         , th []
-            [ text "Author" ]
+            [ text "Name" ]
         ]
 
 viewPost : Post -> Html Msg
 viewPost post =
     tr []
         [ td []
-            [ text (String.fromInt post.id) ]
+            [ text post.id ]
         , td []
-            [ text post.title ]
+            [ text post.post ]
         , td []
-            [ a  [ href post.authorUrl ] [ text post.authorName ] ]
+            [ a  [ href post.authorUrl ] [ text post.name ] ]
         ]
 
 type Msg
@@ -90,16 +92,18 @@ type Msg
 postDecoder : Decoder Post
 postDecoder =
     Decode.succeed Post
-        |> required "id" int
-        |> required "title" string
-        |> required "authorName" string
-        |> required "authorUrl" string
+        |> optional "id" string "unknown"
+        |> optional "title" string "unknown"
+        |> optional "authorName" string "unknown"
+        |> optional "authorUrl" string "unknown"
+        |> optional "name" string "unknown"
+        |> optional "post" string "unknown"
 
 
 fetchPosts : Cmd Msg
 fetchPosts =
     Http.get
-        { url = "http://localhost:5019/posts"
+        { url = "https://intense-sea-62412.herokuapp.com/api/v1/posts"
         , expect = 
             list postDecoder
                |> Http.expectJson (RemoteData.fromResult >> PostsReceived) 

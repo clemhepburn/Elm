@@ -5,5 +5,8 @@
   "license": "MIT",
   "scripts": {
     "build": "mkdir -p dist && elm make post-app/Main.elm --optimize --output=dist/elm.js && cp index.html dist && cp style.css dist"
+  },
+  "dependencies": {
+    "elm": "^0.19.1-5"
   }
 }

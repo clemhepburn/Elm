@@ -33,7 +33,7 @@ initialModel navKey =
 fetchPost : PostId -> Cmd Msg
 fetchPost postId =
     Http.get
-        { url = "http://localhost:7890/api/v1/posts/" ++ Post.idToString postId
+        { url = "https://intense-sea-62412.herokuapp.com/api/v1/posts/" ++ Post.idToString postId
         , expect =
             postDecoder
                 |> Http.expectJson (RemoteData.fromResult >> PostReceived)
@@ -102,7 +102,7 @@ savePost post =
         RemoteData.Success postData ->
             let
                 postUrl =
-                    "http://localhost:7890/api/v1/posts/" ++ Post.idToString postData.id
+                    "https://intense-sea-62412.herokuapp.com/api/v1/posts/" ++ Post.idToString postData.id
             in
             Http.request
                 { method = "PATCH"

@@ -10,6 +10,7 @@ type Route
     = NotFound
     | Posts
     | Post PostId
+    | NewPost
 
 
 parseUrl : Url -> Route
@@ -28,6 +29,7 @@ matchRoute =
         [ map Posts top
         , map Posts (s "posts")
         , map Post (s "posts" </> Post.idParser)
+        , map NewPost (s "posts" </> s "new")
         ]
 
 
@@ -48,3 +50,6 @@ routeToString route =
 
         Post postId ->
             "/posts/" ++ Post.idToString postId
+
+        NewPost ->
+            "/posts/new"

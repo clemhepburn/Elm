@@ -37,7 +37,7 @@ initialModel =
 fetchPosts : Cmd Msg
 fetchPosts =
     Http.get
-        { url = "http://localhost:7890/api/v1/posts/"
+        { url = "https://intense-sea-62412.herokuapp.com/api/v1/posts/"
         , expect =
             postsDecoder
                 |> Http.expectJson (RemoteData.fromResult >> PostsReceived)
@@ -69,7 +69,7 @@ deletePost postId =
     Http.request
         { method = "DELETE"
         , headers = []
-        , url = "http://localhost:7890/api/v1/posts/" ++ Post.idToString postId
+        , url = "https://intense-sea-62412.herokuapp.com/api/v1/posts/" ++ Post.idToString postId
         , body = Http.emptyBody
         , expect = Http.expectString PostDeleted
         , timeout = Nothing
@@ -84,6 +84,10 @@ view model =
     div []
         [ button [ onClick FetchPosts ]
             [ text "Refresh posts" ]
+        , br [] []
+        , br [] []
+        , a [ href "/posts/new" ]
+            [ text "New post" ]
         , viewPosts model.posts
         , viewDeleteError model.deleteError
         ]
@@ -100,7 +104,7 @@ viewPosts posts =
 
         RemoteData.Success actualPosts ->
             div []
-                [ h3 [] [ text "Posts" ]
+                [ h3 [] [ text "Elm Posts" ]
                 , table []
                     ([ viewTableHeader ] ++ List.map viewPost actualPosts)
                 ]

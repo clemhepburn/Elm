@@ -5,29 +5,36 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 import Http
 import Json.Decode as Decode
-import Post exposing (Post, postsDecoder)
+import Post exposing (Post, PostId, postsDecoder)
 import RemoteData exposing (WebData)
+import Error exposing (buildErrorMessage)
+
 
 type alias Model =
-  { posts : WebData (List Post)
-  }
+    { posts : WebData (List Post)
+    }
+
 
 type Msg
-  = FetchPosts
-  | PostsReceived (WebData (List Post))
+    = FetchPosts
+    | PostsReceived (WebData (List Post))
 
-init : () -> ( Model, Cmd Msg )
-init _ =
-  ( { posts = RemoteData.Loading }, fetchPosts )
+
+init : ( Model, Cmd Msg )
+init =
+    ( { posts = RemoteData.Loading }, fetchPosts )
+
 
 fetchPosts : Cmd Msg
 fetchPosts =
-  Http.get
-    { url = "http://localhost:7890/api/v1/posts"
-    , expect =
-      postsDecoder
-          |> Http.expectJson (RemoteData.fromResult >> PostsReceived)
-    }
+    Http.get
+        { url = "http://localhost:7890/api/v1/posts/"
+        , expect =
+            postsDecoder
+                |> Http.expectJson (RemoteData.fromResult >> PostsReceived)
+        }
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -38,87 +45,82 @@ update msg model =
             ( { model | posts = response }, Cmd.none )
 
 
--- views
+
+-- VIEWS
+
 
 view : Model -> Html Msg
 view model =
-  div [] 
-    [ button [ onClick FetchPosts ]
-        [ text "Refresh Posts" ]
-    , viewPosts model.posts
-     ]
+    div []
+        [ button [ onClick FetchPosts ]
+            [ text "Refresh posts" ]
+        , viewPosts model.posts
+        ]
 
-viewPosts: WebData (List Post) -> Html Msg
+
+viewPosts : WebData (List Post) -> Html Msg
 viewPosts posts =
-  case posts of
-      RemoteData.NotAsked ->
-          text ""
-      RemoteData.Loading ->
-          h3 [] [ text "Loading..." ]
-      RemoteData.Success actualPosts ->
-          div []
-            [ h3 [] [ text "Elm Blog" ]
-            , div []
-                (List.map viewPost actualPosts)
-            ]
-      RemoteData.Failure httpError ->
-          viewFetchError (buildErrorMessage httpError)
+    case posts of
+        RemoteData.NotAsked ->
+            text ""
 
--- viewTableHeader : Html Msg
--- viewTableHeader =
---   tr []
---     [ th []
---       [ text "name" ]
---     , th []
---       [ text "post" ]
---     , th []
---       [ text "associated fruit" ] 
---       ]
+        RemoteData.Loading ->
+            h3 [] [ text "Loading..." ]
+
+        RemoteData.Success actualPosts ->
+            div []
+                [ h3 [] [ text "Posts" ]
+                , table []
+                    ([ viewTableHeader ] ++ List.map viewPost actualPosts)
+                ]
+
+        RemoteData.Failure httpError ->
+            viewFetchError (buildErrorMessage httpError)
+
+
+viewTableHeader : Html Msg
+viewTableHeader =
+    tr []
+        [ th []
+            [ text "ID" ]
+        , th []
+            [ text "Name" ]
+        , th []
+            [ text "Post" ]
+        , th []
+            [ text "Associated Fruit"]
+        ]
+
 
 viewPost : Post -> Html Msg
 viewPost post =
-    div [ style "display" "flex"
-        , style "flex-direction" "column" ]
-      [ span [ style "font-weight" "bold" ]
-        [ text "Name: "]
-      , span []
-        [ text post.name ]
-      , span [ style "font-weight" "bold" ]
-        [ text "Message: "]
-      , span []
-        [ text post.post ] 
-      , span [ style "font-weight" "bold" ]
-        [ text "Associated Fruit: " ]
-      , span []
-        [ text post.fruit ]  
-      ]
+    let
+        postPath =
+            "/posts/" ++ Post.idToString post.id
+    in
+    tr []
+        [ td []
+            [ text (Post.idToString post.id) ]
+        , td []
+            [ text post.name ]
+        , td []
+            [ text post.post ]
+        , td []
+            [ text post.fruit ]
+        , td []
+            [ a [ href postPath ][ text "Edit" ] ] 
+        ] 
+
 
 viewFetchError : String -> Html Msg
 viewFetchError errorMessage =
-  let
-    errorHeading =
-      "Couldn't fetch posts at this time."
-  in
-  div []
-    [ h3 [] [ text errorHeading ]
-    , text ("Error: " ++ errorMessage)
-    ]  
+    let
+        errorHeading =
+            "Couldn't fetch posts at this time."
+    in
+    div []
+        [ h3 [] [ text errorHeading ]
+        , text ("Error: " ++ errorMessage)
+        ]
 
-buildErrorMessage : Http.Error -> String
-buildErrorMessage httpError =
-  case httpError of
-      Http.BadUrl message ->
-          message
-
-      Http.Timeout ->
-        "Server is taking too long to repsond. Please try again later."
-      
-      Http.NetworkError ->
-        "Unable to reach server."
-      
-      Http.BadStatus statusCode ->
-        "Request failed with status code: " ++ String.fromInt statusCode
-      
-      Http.BadBody message ->
-        message
 

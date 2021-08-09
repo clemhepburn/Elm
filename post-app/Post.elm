@@ -1,15 +1,31 @@
-module Post exposing (Post, postDecoder, postsDecoder)
+  
+module Post exposing
+    ( Post
+    , PostId
+    , idParser
+    , idToString
+    , postDecoder
+    , postEncoder
+    , postsDecoder
+    )
 
 import Json.Decode as Decode exposing (Decoder, int, list, string)
-import Json.Decode.Pipeline exposing (required, optional)
+import Json.Decode.Pipeline exposing (required)
+import Html exposing (a)
+import Url.Parser exposing (Parser, custom)
+import Json.Encode as Encode
 
 
 type alias Post =
-    { id : String
+    { id : PostId
     , name : String
     , post : String
-    ,fruit : String
+    , fruit : String
     }
+
+type PostId
+    = PostId Int
+
 
 postsDecoder : Decoder (List Post)
 postsDecoder =
@@ -19,12 +35,35 @@ postsDecoder =
 postDecoder : Decoder Post
 postDecoder =
     Decode.succeed Post
-        |> optional "id" string "unknown"
-        |> optional "name" string "unknown"
-        |> optional "post" string "unknown"
-        |> optional "fruit" string "unknown"
-        
+        |> required "id" idDecoder
+        |> required "name" string
+        |> required "post" string
+        |> required "fruit" string
+
+idDecoder : Decoder PostId
+idDecoder =
+    Decode.map PostId int
+
+idToString : PostId -> String
+idToString (PostId id) =
+    String.fromInt id
+
+idParser : Parser (PostId -> a) a
+idParser =
+    custom "POSTID" <|
+        \postId ->
+            Maybe.map PostId (String.toInt postId)
+
+postEncoder : Post -> Encode.Value
+postEncoder post =
+    Encode.object
+        [ ( "id", encodeId post.id )
+        , ( "name", Encode.string post.name )
+        , ( "post", Encode.string post.post )
+        , ( "fruit", Encode.string post.fruit )
+        ]
 
 
-
-
+encodeId : PostId -> Encode.Value
+encodeId (PostId id) =
+    Encode.int id

@@ -57,33 +57,40 @@ viewPosts posts =
           h3 [] [ text "Loading..." ]
       RemoteData.Success actualPosts ->
           div []
-            [ h3 [] [ text "Posts" ]
-            , table []
-                ([ viewTableHeader ] ++ List.map viewPost actualPosts)
+            [ h3 [] [ text "Elm Blog" ]
+            , div []
+                (List.map viewPost actualPosts)
             ]
       RemoteData.Failure httpError ->
           viewFetchError (buildErrorMessage httpError)
 
-viewTableHeader : Html Msg
-viewTableHeader =
-  tr []
-    [ th []
-      [ text "name" ]
-    , th []
-      [ text "post" ]
-    , th []
-      [ text "associated fruit" ] 
-      ]
+-- viewTableHeader : Html Msg
+-- viewTableHeader =
+--   tr []
+--     [ th []
+--       [ text "name" ]
+--     , th []
+--       [ text "post" ]
+--     , th []
+--       [ text "associated fruit" ] 
+--       ]
 
 viewPost : Post -> Html Msg
 viewPost post =
-    tr []
-       [ td []
-      [ text post.name ]
-      , td []
-      [ text post.post ]
-      , td []
-      [ text post.fruit]
+    div [ style "display" "flex"
+        , style "flex-direction" "column" ]
+      [ span [ style "font-weight" "bold" ]
+        [ text "Name: "]
+      , span []
+        [ text post.name ]
+      , span [ style "font-weight" "bold" ]
+        [ text "Message: "]
+      , span []
+        [ text post.post ] 
+      , span [ style "font-weight" "bold" ]
+        [ text "Associated Fruit: " ]
+      , span []
+        [ text post.fruit ]  
       ]
 
 viewFetchError : String -> Html Msg

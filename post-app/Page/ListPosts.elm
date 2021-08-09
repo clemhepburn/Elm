@@ -12,17 +12,26 @@ import Error exposing (buildErrorMessage)
 
 type alias Model =
     { posts : WebData (List Post)
+    , deleteError : Maybe String
     }
 
 
 type Msg
     = FetchPosts
     | PostsReceived (WebData (List Post))
+    | DeletePost PostId
+    | PostDeleted (Result Http.Error String)
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( { posts = RemoteData.Loading }, fetchPosts )
+    ( initialModel, fetchPosts )
+
+initialModel : Model
+initialModel =
+    { posts = RemoteData.Loading
+    , deleteError = Nothing
+    }
 
 
 fetchPosts : Cmd Msg
@@ -44,7 +53,28 @@ update msg model =
         PostsReceived response ->
             ( { model | posts = response }, Cmd.none )
 
+        DeletePost postId ->
+            ( model, deletePost postId )
 
+        PostDeleted (Ok _) ->
+            ( model, fetchPosts )
+        
+        PostDeleted (Err error) ->
+            ( { model | deleteError = Just (buildErrorMessage error) }
+            , Cmd.none
+            )
+
+deletePost : PostId -> Cmd Msg
+deletePost postId =
+    Http.request
+        { method = "DELETE"
+        , headers = []
+        , url = "http://localhost:7890/api/v1/posts/" ++ Post.idToString postId
+        , body = Http.emptyBody
+        , expect = Http.expectString PostDeleted
+        , timeout = Nothing
+        , tracker = Nothing
+        }
 
 -- VIEWS
 
@@ -55,6 +85,7 @@ view model =
         [ button [ onClick FetchPosts ]
             [ text "Refresh posts" ]
         , viewPosts model.posts
+        , viewDeleteError model.deleteError
         ]
 
 
@@ -109,6 +140,10 @@ viewPost post =
             [ text post.fruit ]
         , td []
             [ a [ href postPath ][ text "Edit" ] ] 
+        , td []
+            [ button [ type_ "button", onClick (DeletePost post.id) ]
+            [ text "Delete" ]
+            ]
         ] 
 
 
@@ -124,3 +159,13 @@ viewFetchError errorMessage =
         ]
 
 
+viewDeleteError : Maybe String -> Html msg
+viewDeleteError maybeError =
+    case maybeError of
+        Just error ->
+            div []
+                [ h3 [] [ text "Error deleting post" ]
+                , text ("Error: " ++ error)
+                ]
+        Nothing ->
+            text ""

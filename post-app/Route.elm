@@ -46,7 +46,7 @@ routeToString route =
             "/not-found"
 
         Posts ->
-            "/posts/"
+            "/"
 
         Post postId ->
             "/posts/" ++ Post.idToString postId

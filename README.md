@@ -1,2 +1,2 @@
 # Elm
-i'm learning Elm, working through the elmprogramming.com guide projects
+Front end for Elm "posts" app with json routes
